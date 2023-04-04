@@ -1,5 +1,5 @@
 {
-  "name": "nodejs",
+  "name": "rest",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -14,16 +14,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Parallitik/NodeJs.git"
+    "url": "git+https://github.com/Parallitik/REST_API_CHAT.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Parallitik/NodeJs/issues"
+    "url": "https://github.com/Parallitik/REST_API_CHAT/issues"
   },
-  "homepage": "https://github.com/Parallitik/NodeJs#readme",
+  "homepage": "https://github.com/Parallitik/REST_API_CHAT#readme",
   "dependencies": {
+    "bcrypt": "^5.1.0",
     "body-parser": "^1.20.2",
     "cowsay": "^1.5.0",
     "dotenv": "^16.0.3",
@@ -32,6 +33,7 @@
     "nodemon": "^2.0.20"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
     "@types/express": "^4.17.17",
     "@types/jest": "^29.4.0",
     "@typescript-eslint/eslint-plugin": "^5.53.0",

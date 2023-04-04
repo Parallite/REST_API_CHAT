@@ -1,15 +1,19 @@
 import express from 'express';
-import bodyParser from 'body-parser';
+
+import 'dotenv/config'
 
 import ChatRouter from './routes/chats';
 import MessageRouter from './routes/messages';
+import AuthRouter from './routes/auth';
+
 import mongoose from 'mongoose';
 import cowsay from 'cowsay';
+import { errorMiddleware } from './middlewares/error';
 
-import * as dotenv from 'dotenv'
-dotenv.config()
+const URL = process.env.MONGODB_URI as string;
+const PORT = process.env.PORT as string;
 
-mongoose.connect(`mongodb://localhost:${process.env.MONGODB_PORT}/React-ChatProject`).then(() => {
+mongoose.connect(URL).then(() => {
     console.log(cowsay.say({
         text: "Mongoose connected",
         e: "oO",
@@ -19,12 +23,20 @@ mongoose.connect(`mongodb://localhost:${process.env.MONGODB_PORT}/React-ChatProj
 
 const app = express();
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 app.get('/status', (_, res) => res.send('OK'));
 
+app.use('/', AuthRouter);
 app.use('/chats', ChatRouter);
 app.use('/messages', MessageRouter);
 
-app.listen(process.env.LOCAL_PORT, () => console.log(`server has been started to http://localhost:${process.env.LOCAL_PORT}`));
+app.use(errorMiddleware);
+
+app.all("*", (_, res) => {
+    res.status(404);
+    res.json({ error: 404 })
+})
+
+app.listen(PORT || 5000, () => console.log(`server has been started to http://localhost:${PORT}`));
