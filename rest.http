@@ -1,6 +1,6 @@
 ### read chats
 
-http://localhost:5555/chats
+http://localhost:0000/chats
 
 ### create chat
 
@@ -23,3 +23,37 @@ Content-Type: application/json
 {
     "name": "newNameChat"
 }
+
+### read messages
+
+http://localhost:5555/messages/
+
+### create message
+
+POST http://localhost:5555/messages HTTP/1.1
+Content-Type: application/json
+
+{
+    "chatId": "64281a332907456957989f5d",
+    "author": "USER",
+    "text": "test text from POST"
+}
+
+### read messages in chat
+
+http://localhost:5555/messages/64281a332907456957989f5d
+
+### create message in chat
+
+# POST http://localhost:5555/messages/64281a332907456957989f5d HTTP/1.1
+# Content-Type: application/json
+
+# {
+#     "chatId": "64281a332907456957989f5d",
+#     "author": "USER",
+#     "text": "test text from POST"
+# }
+
+### delete message
+
+### update messages

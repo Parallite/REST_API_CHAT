@@ -1,5 +1,10 @@
-import express from 'express';
+import express, { Request } from 'express';
 import { Chats } from '../models/chats';
+
+export interface TypedRequestBody<T> extends Request {
+    body: T;
+}
+
 const router = express.Router();
 
 router
@@ -7,20 +12,26 @@ router
         const chats = await Chats.find();
         res.json(chats);
     })
-    .post('/', async (req, res) => {
-        try {
-            const newChat = await Chats.create(req.body);
-            res.status(201);
-            res.send(newChat);
-        } catch (err) {
-            res.status(500);
-            res.send(err);
-        }
+    .post("/", (req: TypedRequestBody<{ name: string }>, res, next) => {
+        Chats.create(req.body)
+            .then((newChat) => {
+                res.status(201);
+                res.json(newChat);
+            })
+            .catch((err: Error) => {
+                next(err);
+            })
     })
-    .delete('/:id', async (req, res) => {
-        const deleted = await Chats.findByIdAndDelete(req.params.id);
-        res.status(200);
-        res.json(deleted);
+    .delete('/:id', (req: TypedRequestBody<{ id: string }>, res, next) => {
+        Chats.findByIdAndDelete(req.params.id)
+            .then((deletedChat) => {
+                res.status(200);
+                res.json(deletedChat);
+            })
+            .catch((err: Error) => {
+                console.log(err);
+                next(err);
+            })
     })
     .put('/:id', async (req, res) => {
         const updatedChat = await Chats.findByIdAndUpdate(req.params.id, req.body);
