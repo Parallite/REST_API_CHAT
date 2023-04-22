@@ -9,6 +9,8 @@ const chatsSchema = new Schema({
         required: true,
         unique: true
     },
+}, {
+    timestamps: true,
 });
 
 const handle11000 = <T>(error: Error, _: T, next: (error?: CallbackError) => void) => {

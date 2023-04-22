@@ -8,7 +8,9 @@ import AuthRouter from './routes/auth';
 
 import mongoose from 'mongoose';
 import cowsay from 'cowsay';
+import cors from 'cors';
 import { errorMiddleware } from './middlewares/error';
+import { verifyToken } from './middlewares/tokenVerify';
 
 const URL = process.env.MONGODB_URI as string;
 const PORT = process.env.PORT as string;
@@ -23,14 +25,18 @@ mongoose.connect(URL).then(() => {
 
 const app = express();
 
+app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-
 app.get('/status', (_, res) => res.send('OK'));
 
 app.use('/', AuthRouter);
 app.use('/chats', ChatRouter);
 app.use('/messages', MessageRouter);
+
+app.get('/profile', verifyToken, (req, res) => {
+    res.send('im secured')
+});
 
 app.use(errorMiddleware);
 
