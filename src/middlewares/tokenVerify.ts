@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import jwt, { decode } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers['x-access-token'] as string;

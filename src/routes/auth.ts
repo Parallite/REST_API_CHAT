@@ -47,8 +47,8 @@ router
             email: user.email
         }
 
-        const accessToken = jwt.sign(data, process.env.ACCESS_TOKEN_SECRET as string, { expiresIn: '1m' });
-        const refreshToken = jwt.sign(data, process.env.REFRESH_TOKEN_SECRET as string, { expiresIn: '1d' });
+        const accessToken = jwt.sign(data, process.env.ACCESS_TOKEN_SECRET as string, { expiresIn: process.env.ACCESS_TOKEN_LIFE });
+        const refreshToken = jwt.sign(data, process.env.REFRESH_TOKEN_SECRET as string, { expiresIn: process.env.REFRESH_TOKEN_LIFE });
 
         await Token.findOne({ email: user.email }).updateOne({
             expiresIn: false,
@@ -60,7 +60,8 @@ router
         })
             .then((token) => {
                 res.status(200);
-                res.json({ accessToken, refreshToken });
+                res.cookie('refreshToken', refreshToken, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true });
+                res.json({ "status": "Logged in", accessToken, refreshToken });
             })
             .catch((err: Error) => {
                 res.status(500);
@@ -70,16 +71,32 @@ router
     .post('/token', async (req, res) => {
         const refreshToken = req.body.refreshToken;
         if (refreshToken) {
-            const decode = jwt.decode(refreshToken)
+
+            const decode = jwt.decode(refreshToken) as {
+                id: string;
+                email: string
+            }
+
+            const user = { id: decode?.id, email: decode?.email }
+
             const expiresed = await Token.findOne({ token: refreshToken, expiresIn: true })
             if (expiresed) {
-                //@ts-ignore
-                const accessToken = jwt.sign({ id: decode?.id, email: decode?.email }, process.env.ACCESS_TOKEN_SECRET as string)
+                const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET as string, { expiresIn: process.env.ACCESS_TOKEN_LIFE })
+                const newRefreshToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET as string, { expiresIn: process.env.REFRESH_TOKEN_LIFE })
+
+                // разобраться с  inspires in true false..
+
+                await Token.findOne(user).updateOne({
+                    token: newRefreshToken,
+                });
+                res.cookie('refreshToken', newRefreshToken, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true });
                 res.status(200).json({ accessToken })
             } else {
                 res.status(401).json({ error: true, message: "Unauthorized access" });
             }
         }
     })
+//  добавить /logout
+
 
 export default router
