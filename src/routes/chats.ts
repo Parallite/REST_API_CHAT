@@ -12,7 +12,7 @@ router
         const chats = await Chats.find();
         res.json(chats);
     })
-    .post("/", (req: TypedRequestBody<{ name: string }>, res, next) => {
+    .post("/", async (req: TypedRequestBody<{ name: string }>, res, next) => {
         Chats.create(req.body)
             .then((newChat) => {
                 res.status(201);
@@ -22,7 +22,7 @@ router
                 next(err);
             })
     })
-    .delete('/:id', (req: TypedRequestBody<{ id: string }>, res, next) => {
+    .delete('/:id', async (req: TypedRequestBody<{ id: string }>, res, next) => {
         Chats.findByIdAndDelete(req.params.id)
             .then((deletedChat) => {
                 res.status(200);

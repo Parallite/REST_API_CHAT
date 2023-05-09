@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import { User } from '../models/users';
 import bcrypt from 'bcrypt';
 import { Token } from '../models/tokens';
+import { body, validationResult } from 'express-validator'
 
 export interface TypedRequestBody<T> extends Request {
     body: T;
@@ -13,18 +14,27 @@ export type SignUpBody = TypedRequestBody<{ email: string, password: string }>
 const router = express.Router();
 
 router
-    .post("/signup", (req: SignUpBody, res, next) => {
-        User.create(req.body)
-            .then((newUser) => {
-                const { _id, email } = newUser;
-                res.status(201);
-                res.json({ _id, email });
-            })
-            .catch((err: Error) => {
-                console.log(req.body);
-                next(err);
-            })
-    }).post("/signin", async (req, res) => {
+    .post("/signup",
+        body('email').isEmail(),
+        body('password').isLength({ min: 5, max: 32 }),
+        (req: SignUpBody, res, next) => {
+            const err = validationResult(req);
+            if (!err.isEmpty()) {
+                res.status(400).json(err)
+                return
+            }
+            User.create(req.body)
+                .then((newUser) => {
+                    const { _id, email } = newUser;
+                    res.status(201);
+                    res.json({ _id, email });
+                })
+                .catch((err: Error) => {
+                    console.log(req.body);
+                    next(err);
+                })
+        })
+    .post("/signin", async (req, res) => {
         const email = req.body.email;
         const password = req.body.password;
 
@@ -84,11 +94,12 @@ router
                 const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET as string, { expiresIn: process.env.ACCESS_TOKEN_LIFE })
                 const newRefreshToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET as string, { expiresIn: process.env.REFRESH_TOKEN_LIFE })
 
-                // разобраться с  inspires in true false..
+                // разобраться с  inspires in true false.. и обновлением рефреш токена
 
-                await Token.findOne(user).updateOne({
-                    token: newRefreshToken,
-                });
+                await Token.findOne(user).updateOne(
+                    { token: refreshToken }
+                );
+                // зачем
                 res.cookie('refreshToken', newRefreshToken, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true });
                 res.status(200).json({ accessToken })
             } else {
@@ -96,7 +107,17 @@ router
             }
         }
     })
-//  добавить /logout
-
+    .delete('/logout', (req, res, next) => {
+        const { token } = req.cookies;
+        Token.findOneAndDelete(token)
+            .then((token) => {
+                res.clearCookie('refreshToken');
+                res.status(200).json(token);
+            })
+            .catch((err: Error) => {
+                console.log(err);
+                next(err);
+            })
+    })
 
 export default router
