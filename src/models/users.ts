@@ -19,18 +19,18 @@ const UserSchema = new Schema({
 });
 
 UserSchema.pre("save", async function (next) {
-    // const user = this
     const hash = await bcrypt.hash(this.password, 10);
     this.password = hash;
     next();
 })
 
-// UserSchema.methods.isValidPassword = async function (password: string) {
-//     const compare = await bcrypt.compare(password, this.password);
-//     return compare
-// }
+UserSchema.methods.isValidPassword = async function (password: string) {
+    const compare = await bcrypt.compare(password, this.password);
+    console.log(compare, 123);
 
-// переделать валидатор ошибок
+    return compare
+}
+
 const handle11000 = <T>(error: Error, _: T, next: (error?: CallbackError) => void) => {
     if (error.name === "MongoServerError" && (error as MongoError).code === 11000) {
         next(new Error('User with this email already exists'));
